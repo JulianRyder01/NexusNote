@@ -7,7 +7,7 @@ import {
   type CardsQuery,
   type StatsPayload,
 } from '../api/client'
-import type { Card, CardStatus, CardType, CardWithRelations, Priority, Tag } from '@shared/types'
+import type { Card, CardStatus, CardType, CardWithRelations, DailyReview, Priority, Tag } from '@shared/types'
 
 export type ViewKey = 'kanban' | 'list' | 'graph' | 'tags' | 'review' | 'walk' | 'settings'
 
@@ -73,6 +73,11 @@ interface AppState {
   updateTag: (id: string, patch: { name?: string; color?: string | null; description?: string | null }) => Promise<void>
   mergeTags: (from: string, to: string) => Promise<void>
   deleteTag: (id: string) => Promise<void>
+
+  // ---- 回顾与漫游（各自独立取数，不进全局 cards，避免互相污染筛选）----
+  review: DailyReview | null
+  reviewLoading: boolean
+  refreshReview: (date?: string) => Promise<void>
 }
 
 function filtersToQuery(f: Filters): CardsQuery {
@@ -103,6 +108,8 @@ export const useStore = create<AppState>((set, get) => ({
   selectedCardId: null,
   loading: false,
   error: null,
+  review: null,
+  reviewLoading: false,
 
   async checkAuth() {
     try {
@@ -351,6 +358,16 @@ export const useStore = create<AppState>((set, get) => ({
       await api.deleteTag(id)
       await Promise.all([get().refreshTags(), get().refreshCards(), get().refreshStats()])
     } catch (err) {
+      handleErr(err, set)
+    }
+  },
+
+  async refreshReview(date) {
+    set({ reviewLoading: true })
+    try {
+      set({ review: await api.dailyReview(date), reviewLoading: false })
+    } catch (err) {
+      set({ reviewLoading: false })
       handleErr(err, set)
     }
   },

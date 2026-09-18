@@ -175,3 +175,54 @@ export function EmptyState({ title, hint }: { title: string; hint?: string }) {
     </div>
   )
 }
+
+/** 通用卡片容器（白底、圆角、轻阴影） */
+export function Card({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      className={cx(
+        'card-shadow rounded-[var(--radius-card)] border border-line bg-white p-3',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
+/** 区块小标题（带左侧色条） */
+export function SectionTitle({ children, color }: { children: ReactNode; color?: string }) {
+  return (
+    <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink">
+      {color && <span className="h-3.5 w-0.5 rounded" style={{ backgroundColor: color }} />}
+      {children}
+    </h2>
+  )
+}
+
+/** 只读标签胶囊（带可选计数），用于回顾等展示场景 */
+export function TagPill({
+  name,
+  color,
+  count,
+}: {
+  name: string
+  color?: string | null
+  count?: number
+}) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs leading-5"
+      style={{ backgroundColor: `${color ?? '#4a6fa5'}22`, color: color ?? '#4a6fa5' }}
+    >
+      #{name}
+      {count !== undefined && <span className="opacity-60">{count}</span>}
+    </span>
+  )
+}

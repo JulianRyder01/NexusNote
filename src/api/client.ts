@@ -8,6 +8,7 @@ import type {
   CardStatus,
   CardType,
   CardWithRelations,
+  DailyReview,
   Priority,
   Tag,
 } from '@shared/types'
@@ -170,6 +171,10 @@ export const api = {
   // ---- 图谱 ----
   graph: (query: { tag?: string; days?: number; type?: CardType; limit?: number } = {}) =>
     request<GraphPayload>('GET', `/api/graph${qs(query)}`),
+
+  // ---- 回顾 ----
+  dailyReview: (date?: string) =>
+    request<DailyReview>('GET', `/api/review/daily${qs({ date })}`),
 
   // ---- 优先级 ----
   listPriorities: () => request<Priority[]>('GET', '/api/priorities'),

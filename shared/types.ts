@@ -92,6 +92,40 @@ export interface CardWithRelations extends Card {
   links: { id: string; content: string }[]
 }
 
+/** 回顾区块中的卡片条目（精简，避免回顾页拉全量关系） */
+export interface ReviewCard {
+  id: string
+  content: string
+  type: CardType
+  status: CardStatus
+  due_date: string | null
+  updated_at: string
+  tags: string[]
+}
+
+/** 每日回顾：昨日回顾 + 今日总结 */
+export interface DailyReview {
+  /** 回顾所属日（昨日）与总结所属日（今日），均为本地 YYYY-MM-DD */
+  yesterday: string
+  today: string
+  /** 昨日新增的卡片 */
+  createdYesterday: ReviewCard[]
+  /** 昨日完成的 todo（status=done 且 updated_at 落在昨日） */
+  doneYesterday: ReviewCard[]
+  /** 昨日活跃标签：{ name, color, count }，按出现次数降序 */
+  activeTagsYesterday: { name: string; color: string | null; count: number }[]
+  /** 温故：随机一张 7 天前或更早的旧卡片 */
+  throwback: ReviewCard | null
+  /** 今日新增 */
+  createdToday: ReviewCard[]
+  /** 今日完成 */
+  doneToday: ReviewCard[]
+  /** 今日最活跃标签 */
+  activeTagsToday: { name: string; color: string | null; count: number }[]
+  /** 明天 due 的卡片 */
+  dueTomorrow: ReviewCard[]
+}
+
 export const CARD_TYPES: CardType[] = ['todo', 'idea', 'note', 'link']
 export const CARD_STATUSES: CardStatus[] = ['todo', 'in_progress', 'done', 'someday']
 

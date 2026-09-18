@@ -8,6 +8,7 @@ import { CardDetailModal } from './CardDetailModal'
 import { KanbanView } from '../views/KanbanView'
 import { ListView } from '../views/ListView'
 import { GraphView } from '../views/GraphView'
+import { ReviewView } from '../views/ReviewView'
 import { PlaceholderView } from '../views/PlaceholderView'
 
 const NAV: { key: ViewKey; label: string; icon: string; shortcut: string }[] = [
@@ -41,7 +42,7 @@ export function AppShell() {
       case 'tags':
         return <PlaceholderView title="标签管理" note="标签重命名/合并/颜色将在第二阶段实现。" />
       case 'review':
-        return <PlaceholderView title="每日回顾" note="每日回顾将在第三阶段实现。" />
+        return <ReviewView />
       case 'walk':
         return <PlaceholderView title="随机漫游" note="随机漫游将在第三阶段实现。" />
       case 'settings':
