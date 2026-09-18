@@ -1,14 +1,32 @@
 {
   "compilerOptions": {
     "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "strict": false,
+    "types": ["node"],
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["/sdcard/DevelopTab/AplusNexusTodo/shared/*"],
-      "*": ["node_modules/*"]
+      "@/*": ["src/*"],
+      "@shared/*": ["shared/*"]
     }
-  }
+  },
+  "include": ["src", "server", "shared", "vite.config.ts"]
 }
