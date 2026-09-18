@@ -7,6 +7,7 @@ import { QuickCapture } from './QuickCapture'
 import { CardDetailModal } from './CardDetailModal'
 import { KanbanView } from '../views/KanbanView'
 import { ListView } from '../views/ListView'
+import { GraphView } from '../views/GraphView'
 import { PlaceholderView } from '../views/PlaceholderView'
 
 const NAV: { key: ViewKey; label: string; icon: string; shortcut: string }[] = [
@@ -36,7 +37,7 @@ export function AppShell() {
       case 'list':
         return <ListView />
       case 'graph':
-        return <PlaceholderView title="图谱视图" note="标签共现网络将在第二阶段实现。" />
+        return <GraphView />
       case 'tags':
         return <PlaceholderView title="标签管理" note="标签重命名/合并/颜色将在第二阶段实现。" />
       case 'review':

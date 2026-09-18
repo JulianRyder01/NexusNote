@@ -48,6 +48,8 @@ interface AppState {
   setFilters: (patch: Partial<Filters>) => void
   resetFilters: () => void
   selectCard: (id: string | null) => void
+  /** 打开图谱节点的卡片详情：若该卡不在当前列表中，先取回再插入 */
+  openCardById: (id: string) => Promise<void>
 
   refreshAll: () => Promise<void>
   refreshCards: () => Promise<void>
@@ -158,6 +160,21 @@ export const useStore = create<AppState>((set, get) => ({
     void get().refreshCards()
   },
   selectCard: (id) => set({ selectedCardId: id }),
+
+  async openCardById(id) {
+    // 图谱中的卡片可能因筛选（limit/type/days）不在 cards 里，先补齐再打开详情
+    if (!get().cards.some((c) => c.id === id)) {
+      try {
+        const card = await api.getCard(id)
+        const rest = get().cards.filter((c) => c.id !== id)
+        set({ cards: [card, ...rest] })
+      } catch (err) {
+        handleErr(err, set)
+        return
+      }
+    }
+    set({ selectedCardId: id })
+  },
 
   async refreshAll() {
     await Promise.all([
