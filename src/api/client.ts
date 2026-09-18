@@ -94,6 +94,32 @@ export interface StatsPayload {
   doneToday: number
 }
 
+/** 图谱返回结构（与服务端 server/graph.ts 对应） */
+export interface GraphNode {
+  id: string
+  kind: 'tag' | 'card'
+  label: string
+  color: string | null
+  type?: CardType
+  weight: number
+  updated_at?: string
+  due_date?: string | null
+  status?: string
+}
+
+export interface GraphEdge {
+  source: string
+  target: string
+  kind: 'tag-tag' | 'card-tag' | 'card-card'
+  weight: number
+}
+
+export interface GraphPayload {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  truncated: boolean
+}
+
 export const api = {
   // ---- 认证 ----
   login: (password: string) => request<{ ok: true; expires_at: string }>('POST', '/api/auth/login', { password }),
@@ -132,6 +158,10 @@ export const api = {
     request<Tag>('PATCH', `/api/tags/${id}`, patch),
   mergeTags: (from: string, to: string) => request<{ ok: true }>('POST', '/api/tags/merge', { from, to }),
   deleteTag: (id: string) => request<{ ok: true }>('DELETE', `/api/tags/${id}`),
+
+  // ---- 图谱 ----
+  graph: (query: { tag?: string; days?: number; type?: CardType; limit?: number } = {}) =>
+    request<GraphPayload>('GET', `/api/graph${qs(query)}`),
 
   // ---- 优先级 ----
   listPriorities: () => request<Priority[]>('GET', '/api/priorities'),

@@ -7,6 +7,7 @@ import rateLimit from '@fastify/rate-limit'
 import { APP_NAME, APP_VERSION } from '@shared/meta'
 import { getDb } from './db'
 import { cardRoutes } from './routes/cards'
+import { graphRoutes } from './routes/graph'
 import { tagRoutes } from './routes/tags'
 import { authRoutes, requireAuth } from './routes/auth'
 import { purgeExpiredSessions } from './auth'
@@ -45,6 +46,7 @@ await app.register(async (instance) => {
   instance.addHook('preHandler', requireAuth)
   await instance.register(cardRoutes)
   await instance.register(tagRoutes)
+  await instance.register(graphRoutes)
 })
 
 async function start() {
