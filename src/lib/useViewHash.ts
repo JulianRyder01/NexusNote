@@ -5,7 +5,7 @@
 import { useEffect } from 'react'
 import { useStore, type ViewKey } from '../store'
 
-const VIEW_KEYS: ViewKey[] = ['kanban', 'list', 'graph', 'tags', 'review', 'walk', 'settings']
+const VIEW_KEYS: ViewKey[] = ['kanban', 'list', 'gantt', 'graph', 'tags', 'review', 'walk', 'settings']
 
 function readHash(): ViewKey | null {
   const h = window.location.hash.replace(/^#\/?/, '')

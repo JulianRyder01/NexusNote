@@ -8,6 +8,7 @@ import { CardDetailModal } from './CardDetailModal'
 import { KanbanView } from '../views/KanbanView'
 import { ListView } from '../views/ListView'
 import { GraphView } from '../views/GraphView'
+import { GanttView } from '../views/GanttView'
 import { ReviewView } from '../views/ReviewView'
 import { WalkView } from '../views/WalkView'
 import { PlaceholderView } from '../views/PlaceholderView'
@@ -15,6 +16,7 @@ import { PlaceholderView } from '../views/PlaceholderView'
 const NAV: { key: ViewKey; label: string; icon: string; shortcut: string }[] = [
   { key: 'kanban', label: '看板', icon: '▦', shortcut: 'B' },
   { key: 'list', label: '列表', icon: '☰', shortcut: 'L' },
+  { key: 'gantt', label: '甘特图', icon: '▤', shortcut: 'D' },
   { key: 'graph', label: '图谱', icon: '◉', shortcut: 'G' },
   { key: 'tags', label: '标签', icon: '#', shortcut: 'T' },
   { key: 'review', label: '回顾', icon: '☀', shortcut: 'R' },
@@ -38,6 +40,8 @@ export function AppShell() {
         return <KanbanView />
       case 'list':
         return <ListView />
+      case 'gantt':
+        return <GanttView />
       case 'graph':
         return <GraphView />
       case 'tags':

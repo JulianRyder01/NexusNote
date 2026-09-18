@@ -245,6 +245,22 @@ export const TYPE_LABELS: Record<CardType, string> = {
   link: '链接',
 }
 
+/** 类型的图表用色（图谱节点、甘特图时间条共用） */
+export const CARD_TYPE_COLORS: Record<CardType, string> = {
+  todo: '#4a6fa5',
+  idea: '#a5754a',
+  note: '#5b8c85',
+  link: '#8c5b7d',
+}
+
+/** 状态圆点用色（看板、甘特图共用） */
+export const STATUS_COLORS: Record<CardStatus, string> = {
+  todo: '#c8cfd8',
+  in_progress: '#4a6fa5',
+  done: '#5b8c85',
+  someday: '#a5754a',
+}
+
 /** 12 色柔和调色板，用于自动分配标签/优先级颜色 */
 export const SOFT_PALETTE = [
   '#4a6fa5',

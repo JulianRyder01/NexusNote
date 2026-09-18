@@ -8,6 +8,7 @@ import { Spinner } from './components/ui'
 const VIEW_SHORTCUTS: Record<string, ViewKey> = {
   b: 'kanban',
   l: 'list',
+  d: 'gantt',
   g: 'graph',
   t: 'tags',
   r: 'review',

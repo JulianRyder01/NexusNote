@@ -7,9 +7,9 @@ import {
   type CardsQuery,
   type StatsPayload,
 } from '../api/client'
-import type { Card, CardStatus, CardType, CardWithRelations, DailyReview, Priority, RandomWalkResult, Tag } from '@shared/types'
+import type { Card, CardStatus, CardType, CardWithRelations, DailyReview, Priority, RandomWalkResult, SchedulePayload, Tag } from '@shared/types'
 
-export type ViewKey = 'kanban' | 'list' | 'graph' | 'tags' | 'review' | 'walk' | 'settings'
+export type ViewKey = 'kanban' | 'list' | 'gantt' | 'graph' | 'tags' | 'review' | 'walk' | 'settings'
 
 export interface Filters {
   q: string
@@ -82,6 +82,11 @@ interface AppState {
   walk: RandomWalkResult | null
   walkLoading: boolean
   drawRandom: (opts?: { tag?: string; exclude?: string }) => Promise<void>
+
+  // ---- 排期（甘特图 / 矩阵）----
+  schedule: SchedulePayload | null
+  scheduleLoading: boolean
+  refreshSchedule: () => Promise<void>
 }
 
 function filtersToQuery(f: Filters): CardsQuery {
@@ -116,6 +121,8 @@ export const useStore = create<AppState>((set, get) => ({
   reviewLoading: false,
   walk: null,
   walkLoading: false,
+  schedule: null,
+  scheduleLoading: false,
 
   async checkAuth() {
     try {
@@ -384,6 +391,16 @@ export const useStore = create<AppState>((set, get) => ({
       set({ walk: await api.random(opts ?? {}), walkLoading: false })
     } catch (err) {
       set({ walkLoading: false })
+      handleErr(err, set)
+    }
+  },
+
+  async refreshSchedule() {
+    set({ scheduleLoading: true })
+    try {
+      set({ schedule: await api.schedule(), scheduleLoading: false })
+    } catch (err) {
+      set({ scheduleLoading: false })
       handleErr(err, set)
     }
   },
