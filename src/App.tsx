@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useStore, type ViewKey } from './store'
+import { useViewHash } from './lib/useViewHash'
 import { AppShell } from './components/AppShell'
 import { LoginPage } from './components/LoginPage'
 import { Spinner } from './components/ui'
@@ -22,6 +23,9 @@ export default function App() {
   useEffect(() => {
     void checkAuth()
   }, [checkAuth])
+
+  // 视图与 URL hash 同步（刷新保持视图、可直达 #/graph）
+  useViewHash()
 
   // 快捷键：N 聚焦快速输入，B/L/G/T/R 切换视图，/ 聚焦搜索，Esc 关闭弹窗
   useEffect(() => {
