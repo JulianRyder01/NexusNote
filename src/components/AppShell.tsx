@@ -9,6 +9,7 @@ import { KanbanView } from '../views/KanbanView'
 import { ListView } from '../views/ListView'
 import { GraphView } from '../views/GraphView'
 import { ReviewView } from '../views/ReviewView'
+import { WalkView } from '../views/WalkView'
 import { PlaceholderView } from '../views/PlaceholderView'
 
 const NAV: { key: ViewKey; label: string; icon: string; shortcut: string }[] = [
@@ -44,7 +45,7 @@ export function AppShell() {
       case 'review':
         return <ReviewView />
       case 'walk':
-        return <PlaceholderView title="随机漫游" note="随机漫游将在第三阶段实现。" />
+        return <WalkView />
       case 'settings':
         return <PlaceholderView title="设置" note="设置页将在后续阶段实现。" />
       default:

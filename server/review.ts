@@ -9,7 +9,7 @@
  */
 import { getDb } from './db'
 import { dayRangeUTC, shiftISODate, todayISO } from '@shared/date'
-import type { CardStatus, CardType, DailyReview, ReviewCard } from '@shared/types'
+import type { CardStatus, CardType, DailyReview, RandomWalkResult, ReviewCard, Tag } from '@shared/types'
 
 interface CardRow {
   id: string
@@ -167,4 +167,44 @@ export function getDailyReview(date?: string): DailyReview {
     activeTagsToday: activeTagsIn([...createdTodayRows, ...doneTodayRows]),
     dueTomorrow: toReviewCards(dueOn(tomorrow)),
   }
+}
+
+/** 取一张随机卡片；可按标签限定，并排除当前卡片 */
+export function getRandomCard(opts: { tag?: string; exclude?: string } = {}): RandomWalkResult {
+  const db = getDb()
+
+  const pick = (tag?: string, exclude?: string): CardRow | undefined => {
+    const where: string[] = ['c.archived = 0']
+    const params: (string | number)[] = []
+    if (tag) {
+      where.push(
+        'c.id IN (SELECT ct.card_id FROM card_tags ct JOIN tags t ON t.id = ct.tag_id WHERE t.name = ?)',
+      )
+      params.push(tag)
+    }
+    if (exclude) {
+      where.push('c.id != ?')
+      params.push(exclude)
+    }
+    return db
+      .prepare(
+        `SELECT id, content, type, status, due_date, created_at, updated_at
+         FROM cards c WHERE ${where.join(' AND ')} ORDER BY RANDOM() LIMIT 1`,
+      )
+      .get(...params) as unknown as CardRow | undefined
+  }
+
+  // 先按「标签 + 排除当前卡片」抽；若该标签下只有这一张，则允许抽回自己
+  let row = pick(opts.tag, opts.exclude)
+  if (!row && opts.exclude) row = pick(opts.tag)
+  if (!row) return { card: null, tags: [] }
+
+  const card = toReviewCards([row])[0]!
+  const tags = db
+    .prepare(
+      `SELECT t.* FROM tags t JOIN card_tags ct ON ct.tag_id = t.id
+       WHERE ct.card_id = ? ORDER BY t.name`,
+    )
+    .all(row.id) as unknown as Tag[]
+  return { card, tags }
 }

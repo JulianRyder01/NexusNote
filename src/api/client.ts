@@ -10,6 +10,7 @@ import type {
   CardWithRelations,
   DailyReview,
   Priority,
+  RandomWalkResult,
   Tag,
 } from '@shared/types'
 
@@ -172,9 +173,11 @@ export const api = {
   graph: (query: { tag?: string; days?: number; type?: CardType; limit?: number } = {}) =>
     request<GraphPayload>('GET', `/api/graph${qs(query)}`),
 
-  // ---- 回顾 ----
+  // ---- 回顾与漫游 ----
   dailyReview: (date?: string) =>
     request<DailyReview>('GET', `/api/review/daily${qs({ date })}`),
+  random: (query: { tag?: string; exclude?: string } = {}) =>
+    request<RandomWalkResult>('GET', `/api/random${qs(query)}`),
 
   // ---- 优先级 ----
   listPriorities: () => request<Priority[]>('GET', '/api/priorities'),

@@ -7,7 +7,7 @@ import {
   type CardsQuery,
   type StatsPayload,
 } from '../api/client'
-import type { Card, CardStatus, CardType, CardWithRelations, DailyReview, Priority, Tag } from '@shared/types'
+import type { Card, CardStatus, CardType, CardWithRelations, DailyReview, Priority, RandomWalkResult, Tag } from '@shared/types'
 
 export type ViewKey = 'kanban' | 'list' | 'graph' | 'tags' | 'review' | 'walk' | 'settings'
 
@@ -78,6 +78,10 @@ interface AppState {
   review: DailyReview | null
   reviewLoading: boolean
   refreshReview: (date?: string) => Promise<void>
+
+  walk: RandomWalkResult | null
+  walkLoading: boolean
+  drawRandom: (opts?: { tag?: string; exclude?: string }) => Promise<void>
 }
 
 function filtersToQuery(f: Filters): CardsQuery {
@@ -110,6 +114,8 @@ export const useStore = create<AppState>((set, get) => ({
   error: null,
   review: null,
   reviewLoading: false,
+  walk: null,
+  walkLoading: false,
 
   async checkAuth() {
     try {
@@ -368,6 +374,16 @@ export const useStore = create<AppState>((set, get) => ({
       set({ review: await api.dailyReview(date), reviewLoading: false })
     } catch (err) {
       set({ reviewLoading: false })
+      handleErr(err, set)
+    }
+  },
+
+  async drawRandom(opts) {
+    set({ walkLoading: true })
+    try {
+      set({ walk: await api.random(opts ?? {}), walkLoading: false })
+    } catch (err) {
+      set({ walkLoading: false })
       handleErr(err, set)
     }
   },

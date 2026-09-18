@@ -126,6 +126,13 @@ export interface DailyReview {
   dueTomorrow: ReviewCard[]
 }
 
+/** 随机漫游返回：一张卡片 + 当前卡片上的标签（用于顺标签跳） */
+export interface RandomWalkResult {
+  card: ReviewCard | null
+  /** 该卡片所属标签，可用于「顺着标签跳」的候选 */
+  tags: Tag[]
+}
+
 export const CARD_TYPES: CardType[] = ['todo', 'idea', 'note', 'link']
 export const CARD_STATUSES: CardStatus[] = ['todo', 'in_progress', 'done', 'someday']
 
