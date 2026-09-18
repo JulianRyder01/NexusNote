@@ -1,3 +1,6 @@
+// 必须最先执行：把 .env 注入 process.env，供后续模块读取
+import { DOTENV_FILE } from './env'
+
 import Fastify from 'fastify'
 import cookie from '@fastify/cookie'
 import rateLimit from '@fastify/rate-limit'
@@ -49,6 +52,7 @@ async function start() {
     getDb() // 触发数据库初始化与种子数据
     const purged = purgeExpiredSessions()
     if (purged > 0) app.log.info(`已清理 ${purged} 条过期会话`)
+    if (DOTENV_FILE) app.log.info(`已加载环境变量：${DOTENV_FILE}`)
     await app.listen({ port: PORT, host: HOST })
     app.log.info(`${APP_NAME} v${APP_VERSION} 后端已启动`)
   } catch (err) {
