@@ -9,7 +9,7 @@ import {
 } from '../api/client'
 import type { Card, CardStatus, CardType, CardWithRelations, DailyReview, Priority, RandomWalkResult, SchedulePayload, Tag } from '@shared/types'
 
-export type ViewKey = 'kanban' | 'list' | 'gantt' | 'graph' | 'tags' | 'review' | 'walk' | 'settings'
+export type ViewKey = 'kanban' | 'list' | 'gantt' | 'matrix' | 'graph' | 'tags' | 'review' | 'walk' | 'settings'
 
 export interface Filters {
   q: string

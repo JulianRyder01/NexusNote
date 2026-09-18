@@ -9,6 +9,7 @@ const VIEW_SHORTCUTS: Record<string, ViewKey> = {
   b: 'kanban',
   l: 'list',
   d: 'gantt',
+  m: 'matrix',
   g: 'graph',
   t: 'tags',
   r: 'review',
