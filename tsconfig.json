@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["/sdcard/DevelopTab/AplusNexusTodo/shared/*"],
+      "*": ["node_modules/*"]
+    }
+  }
+}
