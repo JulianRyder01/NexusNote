@@ -1,7 +1,7 @@
 {
   "name": "aplusnexus",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "description": "AplusNexus — 密码保护的、全球可访问的个人卡片网络",
   "scripts": {
