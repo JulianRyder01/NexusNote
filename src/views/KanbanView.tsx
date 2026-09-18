@@ -2,15 +2,17 @@
 import { useMemo, useState } from 'react'
 import {
   DndContext,
+  DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useDraggable,
   useDroppable,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragStartEvent,
 } from '@dnd-kit/core'
-import { CSS } from '@dnd-kit/utilities'
 import type { CardWithRelations } from '@shared/types'
 import { CARD_STATUSES, STATUS_LABELS } from '@shared/types'
 import { useStore } from '../store'
@@ -33,9 +35,17 @@ export function KanbanView() {
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [newColumn, setNewColumn] = useState('')
+  const [activeId, setActiveId] = useState<string | null>(null)
 
+  // 触摸设备用 TouchSensor（长按 200ms 激活，激活时自行 preventDefault，
+  // 避免被浏览器当作滚动 / 下拉刷新）；鼠标用 PointerSensor 保持手感灵敏。
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 8 },
+    }),
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
     useSensor(KeyboardSensor),
   )
 
@@ -50,13 +60,20 @@ export function KanbanView() {
     return map
   }, [cards, priorities])
 
+  function onDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id))
+  }
+
   function onDragEnd(e: DragEndEvent) {
+    setActiveId(null)
     const cardId = String(e.active.id)
     const overId = e.over?.id ? String(e.over.id) : null
     if (!overId) return
     const target = overId.startsWith('col:') ? overId.slice(4) : overId
     void moveCardToPriority(cardId, target === 'none' ? null : target)
   }
+
+  const activeCard = activeId ? cards.find((c) => c.id === activeId) ?? null : null
 
   const toggleCollapse = (key: string) => setCollapsed((c) => ({ ...c, [key]: !c[key] }))
 
@@ -139,7 +156,7 @@ export function KanbanView() {
       )}
 
       {/* 看板 */}
-      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
           {priorities.map((p, idx) => (
             <Column
@@ -183,6 +200,15 @@ export function KanbanView() {
             isFixed
           />
         </div>
+
+        {/* 拖拽浮层：卡片渲染在顶层，不再被列的 overflow/后续卡片裁剪遮挡 */}
+        <DragOverlay dropAnimation={null}>
+          {activeCard ? (
+            <div className="rotate-1 cursor-grabbing opacity-95 shadow-[0_8px_24px_rgb(30_43_58_/_0.18)]">
+              <CardItem card={activeCard} draggable />
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   )
@@ -379,14 +405,14 @@ function DraggableCard({
   onOpen: () => void
   onToggleDone: () => void
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: card.id })
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: card.id })
   return (
     <div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      style={{ transform: CSS.Translate.toString(transform) }}
-      className={cx(isDragging && 'opacity-50')}
+      // 拖拽中：原位置留一个淡化的占位（实际拖动的是 DragOverlay）
+      className={cx('touch-manipulation', isDragging && 'opacity-40')}
     >
       <CardItem card={card} onOpen={onOpen} onToggleDone={onToggleDone} draggable />
     </div>

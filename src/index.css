@@ -23,6 +23,12 @@ body,
   height: 100%;
 }
 
+html,
+body {
+  /* 移动端：禁用下拉刷新与横向滑动回退，避免拖拽卡片时被浏览器手势劫持 */
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   background-color: var(--color-surface);
