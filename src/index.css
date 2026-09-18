@@ -2,13 +2,19 @@
 
 @theme {
   /* 主色：深蓝灰；强调色：柔和蓝 */
-  --color-nexus-ink: #1e2b3a;
-  --color-nexus-accent: #4a6fa5;
-  --color-nexus-accent-soft: #6b8cbd;
-  --color-nexus-surface: #f7f8fa;
-  --color-nexus-line: #e2e6ec;
+  --color-ink: #1e2b3a;
+  --color-ink-soft: #46586e;
+  --color-accent: #4a6fa5;
+  --color-accent-soft: #6b8cbd;
+  --color-surface: #f7f8fa;
+  --color-surface-raised: #ffffff;
+  --color-line: #e2e6ec;
 
   --radius-card: 6px;
+}
+
+:root {
+  color-scheme: light;
 }
 
 html,
@@ -19,10 +25,133 @@ body,
 
 body {
   margin: 0;
-  background-color: var(--color-nexus-surface);
-  color: var(--color-nexus-ink);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
     'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+}
+
+/* 细滚动条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c8cfd8 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #c8cfd8;
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 通用工具类 */
+.card-shadow {
+  box-shadow: 0 1px 2px rgb(30 43 58 / 0.06), 0 1px 3px rgb(30 43 58 / 0.04);
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* Markdown 渲染样式 */
+.md-body {
+  line-height: 1.65;
+  word-break: break-word;
+}
+.md-body > *:first-child {
+  margin-top: 0;
+}
+.md-body > *:last-child {
+  margin-bottom: 0;
+}
+.md-body h1,
+.md-body h2,
+.md-body h3 {
+  font-weight: 600;
+  margin: 1em 0 0.4em;
+  line-height: 1.3;
+}
+.md-body h1 {
+  font-size: 1.4em;
+}
+.md-body h2 {
+  font-size: 1.2em;
+}
+.md-body h3 {
+  font-size: 1.05em;
+}
+.md-body p {
+  margin: 0.5em 0;
+}
+.md-body ul,
+.md-body ol {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+}
+.md-body ul {
+  list-style: disc;
+}
+.md-body ol {
+  list-style: decimal;
+}
+.md-body li {
+  margin: 0.2em 0;
+}
+.md-body a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+.md-body code {
+  background: #eef1f5;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.md-body pre {
+  background: #f2f4f7;
+  padding: 0.75em 0.9em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.6em 0;
+}
+.md-body pre code {
+  background: none;
+  padding: 0;
+}
+.md-body blockquote {
+  margin: 0.6em 0;
+  padding-left: 0.8em;
+  border-left: 3px solid var(--color-line);
+  color: var(--color-ink-soft);
+}
+.md-body table {
+  border-collapse: collapse;
+  margin: 0.6em 0;
+  font-size: 0.95em;
+}
+.md-body th,
+.md-body td {
+  border: 1px solid var(--color-line);
+  padding: 0.35em 0.6em;
+}
+.md-body hr {
+  border: none;
+  border-top: 1px solid var(--color-line);
+  margin: 1em 0;
+}
+
+/* 隐藏数字输入框的上下箭头 */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

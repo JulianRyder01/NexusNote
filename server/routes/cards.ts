@@ -1,6 +1,7 @@
 /** 卡片相关路由 */
 import type { FastifyInstance } from 'fastify'
 import type { CardStatus, CardType } from '@shared/types'
+import { parseInput } from '@shared/parser'
 import {
   createCard,
   deleteCard,
@@ -10,6 +11,7 @@ import {
   updateCard,
   type ListCardsQuery,
 } from '../cards'
+import { listPriorities } from '../tags'
 
 const CARD_TYPES = new Set(['todo', 'idea', 'note', 'link'])
 const CARD_STATUSES = new Set(['todo', 'in_progress', 'done', 'someday'])
@@ -48,20 +50,29 @@ export async function cardRoutes(app: FastifyInstance): Promise<void> {
 
   app.post('/api/cards', async (req, reply) => {
     const body = req.body as Record<string, unknown>
-    const content = typeof body.content === 'string' ? body.content.trim() : ''
-    if (!content) return reply.code(400).send({ error: '内容不能为空' })
+    const raw = typeof body.content === 'string' ? body.content.trim() : ''
+    if (!raw) return reply.code(400).send({ error: '内容不能为空' })
+
+    // 语法兜底：未显式提供时，由共享解析器从正文识别类型/优先级/due
+    // （前端 QuickCapture 通常会先行解析并显式传入，两者共用同一套语法）
+    const knownNames = listPriorities().map((p) => p.name)
+    const parsed = parseInput(raw, knownNames)
+
+    let priority: string | null = null
+    if (typeof body.priority === 'string') {
+      priority = body.priority
+    } else if (body.priority === null) {
+      priority = null
+    } else if (parsed.priorityName) {
+      priority = listPriorities().find((p) => p.name === parsed.priorityName)?.id ?? null
+    }
 
     const card = createCard({
-      content,
-      type: asType(body.type),
-      priority:
-        body.priority === undefined || body.priority === null
-          ? null
-          : typeof body.priority === 'string'
-            ? body.priority
-            : null,
+      content: parsed.content.trim() || raw,
+      type: asType(body.type) ?? parsed.type,
+      priority,
       status: asStatus(body.status),
-      due_date: typeof body.due_date === 'string' ? body.due_date : null,
+      due_date: typeof body.due_date === 'string' ? body.due_date : parsed.dueDate,
     })
     return reply.code(201).send(card)
   })
@@ -70,9 +81,18 @@ export async function cardRoutes(app: FastifyInstance): Promise<void> {
     const { id } = req.params as { id: string }
     const body = req.body as Record<string, unknown>
 
+    // 内容被改写时同样做语法兜底，保证与创建时一致
+    const newContent = typeof body.content === 'string' ? body.content.trim() : undefined
+    let fallback: { type?: CardType; due_date?: string | null } = {}
+    if (newContent !== undefined) {
+      const knownNames = listPriorities().map((p) => p.name)
+      const parsed = parseInput(newContent, knownNames)
+      fallback = { type: parsed.type, due_date: parsed.dueDate }
+    }
+
     const card = updateCard(id, {
-      content: typeof body.content === 'string' ? body.content : undefined,
-      type: asType(body.type),
+      content: newContent,
+      type: asType(body.type) ?? fallback.type,
       priority:
         body.priority === undefined
           ? undefined
@@ -82,7 +102,7 @@ export async function cardRoutes(app: FastifyInstance): Promise<void> {
       status: asStatus(body.status),
       due_date:
         body.due_date === undefined
-          ? undefined
+          ? fallback.due_date
           : body.due_date === null || typeof body.due_date === 'string'
             ? (body.due_date as string | null)
             : undefined,
