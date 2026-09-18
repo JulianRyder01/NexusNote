@@ -11,6 +11,7 @@
     "dev:server": "tsx watch server/index.ts",
     "build": "tsc --noEmit && vite build",
     "preview": "bash scripts/preview.sh",
+    "seed:demo": "bash scripts/seed-demo.sh",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
