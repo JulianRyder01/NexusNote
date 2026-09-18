@@ -22,6 +22,10 @@ const LINK_RE = /\[\[([^\]]+)\]\]/g
 const PRIORITY_RE = /(?:^|\s)(P[0-9])(?=\s|$)/g
 /** 匹配 @日期 token */
 const AT_TOKEN_RE = /@([^\s#\[\]@]+)/g
+/** 匹配 @起~@止 或 @起~止 区间（~ 支持全角～；终点可省略，表示「自该日起」） */
+const RANGE_RE = /@([^\s#\[\]@~～]+)\s*[~～]\s*(?:@([^\s#\[\]@~～]+))?/g
+/** 匹配行内重要性标记：! / !! / !!!（前后为空白或行首尾） */
+const IMPORTANCE_RE = /(?:^|\s)(!{1,3})(?=\s|$)/g
 
 const WEEKDAY_CN = ['日', '一', '二', '三', '四', '五', '六']
 
@@ -179,15 +183,54 @@ export function extractPriority(text: string, knownNames: string[] = []): string
   return m ? (m[1] ?? null) : null
 }
 
-/** 提取 due date（取第一个可解析的 @token） */
-export function extractDueDate(text: string, now: Date = new Date()): string | null {
-  for (const m of text.matchAll(AT_TOKEN_RE)) {
-    const token = m[1]
-    if (!token) continue
-    const iso = parseDueToken(token, now)
-    if (iso) return iso
+/**
+ * 成对提取时间区间：同时返回 start 与 due，保证两者一致。
+ *
+ * 规则：
+ *   - 有 `@起~@止` 区间语法时，两端都解析成功则取用；起止颠倒则自动交换。
+ *   - 否则退化到第一个可解析的 `@token` 作为 due（start 为 null → 甘特图里程碑点）。
+ *
+ * 之所以成对返回：避免 start 与 due 分别解析，导致「只交换了其中一个」这类不一致。
+ */
+export function extractDateRange(
+  text: string,
+  now: Date = new Date(),
+): { start: string | null; due: string | null } {
+  for (const m of text.matchAll(RANGE_RE)) {
+    const a = m[1] ? parseDueToken(m[1], now) : null
+    const b = m[2] ? parseDueToken(m[2], now) : null
+    if (a && b) return a <= b ? { start: a, due: b } : { start: b, due: a }
+    if (a) return { start: a, due: a }
+    if (b) return { start: null, due: b }
   }
-  return null
+  for (const m of text.matchAll(AT_TOKEN_RE)) {
+    const iso = m[1] ? parseDueToken(m[1], now) : null
+    if (iso) return { start: null, due: iso }
+  }
+  return { start: null, due: null }
+}
+
+/** 提取 due date（便捷包装，取区间的「止」） */
+export function extractDueDate(text: string, now: Date = new Date()): string | null {
+  return extractDateRange(text, now).due
+}
+
+/** 提取开始日期（便捷包装，仅在 `@起~@止` 区间语法下非空） */
+export function extractStartDate(text: string, now: Date = new Date()): string | null {
+  return extractDateRange(text, now).start
+}
+
+/**
+ * 提取重要性：行内独立的 `!` 数量（1/2/3，最多取 3）。
+ * 注意仅匹配被空白包夹的 `!`，因此正文里的感叹号不受影响。
+ */
+export function extractImportance(text: string): number | null {
+  let max = 0
+  for (const m of text.matchAll(IMPORTANCE_RE)) {
+    const n = m[1]?.length ?? 0
+    if (n > max) max = n
+  }
+  return max > 0 ? Math.min(max, 3) : null
 }
 
 function escapeRegExp(s: string): string {
@@ -205,6 +248,7 @@ export function parseInput(
   now: Date = new Date(),
 ): ParsedInput {
   const { type, content, done } = detectType(raw)
+  const range = extractDateRange(content, now)
   return {
     raw,
     content,
@@ -213,16 +257,24 @@ export function parseInput(
     priorityName: extractPriority(content, knownPriorities),
     tags: extractTags(content),
     links: extractLinks(content),
-    dueDate: extractDueDate(content, now),
+    startDate: range.start,
+    dueDate: range.due,
+    importance: extractImportance(content),
   }
 }
 
 /**
  * 从正文中剥离语法标记，得到用于展示的纯文本。
- * 保留标签文本（标签本身是内容的一部分），仅去除优先级与日期 token。
+ * 保留标签文本（标签本身是内容的一部分），去除优先级、日期 token 与重要性标记。
  */
 export function stripSyntaxGlue(text: string, knownPriorities: string[] = []): string {
-  let out = text.replace(AT_TOKEN_RE, '').replace(/\s{2,}/g, ' ').trim()
+  let out = text
+    // 先剥离区间整体，再剥离剩余单点日期 token
+    .replace(RANGE_RE, '')
+    .replace(AT_TOKEN_RE, '')
+    .replace(IMPORTANCE_RE, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
   for (const name of knownPriorities) {
     if (!name) continue
     out = out.replace(new RegExp(`(?:^|\\s)${escapeRegExp(name)}(?=\\s|$)`, 'g'), ' ').trim()

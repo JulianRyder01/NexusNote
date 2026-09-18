@@ -17,7 +17,9 @@ export interface CreateCardInput {
   type?: CardType
   priority?: string | null
   status?: CardStatus
+  start_date?: string | null
   due_date?: string | null
+  importance?: number | null
 }
 
 export interface UpdateCardInput {
@@ -25,7 +27,9 @@ export interface UpdateCardInput {
   type?: CardType
   priority?: string | null
   status?: CardStatus
+  start_date?: string | null
   due_date?: string | null
+  importance?: number | null
   archived?: 0 | 1
 }
 
@@ -37,6 +41,7 @@ export interface ListCardsQuery {
   q?: string
   dueBefore?: string
   dueAfter?: string
+  hasSchedule?: boolean
   archived?: 0 | 1
   limit?: number
   offset?: number
@@ -142,7 +147,9 @@ function rowToCard(row: Record<string, unknown>): Card {
     type: row.type as CardType,
     priority: (row.priority as string | null) ?? null,
     status: (row.status as CardStatus) ?? 'todo',
+    start_date: (row.start_date as string | null) ?? null,
     due_date: (row.due_date as string | null) ?? null,
+    importance: row.importance === null || row.importance === undefined ? null : Number(row.importance),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     archived: (Number(row.archived) ? 1 : 0) as 0 | 1,
@@ -155,15 +162,17 @@ export function createCard(input: CreateCardInput): Card {
     const id = `card_${makeId(12)}`
     const ts = nowISO()
     db.prepare(
-      `INSERT INTO cards (id, content, type, priority, status, due_date, created_at, updated_at, archived)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+      `INSERT INTO cards (id, content, type, priority, status, start_date, due_date, importance, created_at, updated_at, archived)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
     ).run(
       id,
       input.content,
       input.type ?? 'note',
       input.priority ?? null,
       input.status ?? 'todo',
+      input.start_date ?? null,
       input.due_date ?? null,
+      input.importance ?? null,
       ts,
       ts,
     )
@@ -191,20 +200,24 @@ export function updateCard(id: string, patch: UpdateCardInput): Card | null {
       type: patch.type ?? next.type,
       priority: patch.priority !== undefined ? patch.priority : next.priority,
       status: patch.status ?? next.status,
+      start_date: patch.start_date !== undefined ? patch.start_date : next.start_date,
       due_date: patch.due_date !== undefined ? patch.due_date : next.due_date,
+      importance: patch.importance !== undefined ? patch.importance : next.importance,
       archived: patch.archived !== undefined ? patch.archived : next.archived,
       updated_at: nowISO(),
     }
 
     db.prepare(
-      `UPDATE cards SET content = ?, type = ?, priority = ?, status = ?, due_date = ?, updated_at = ?, archived = ?
+      `UPDATE cards SET content = ?, type = ?, priority = ?, status = ?, start_date = ?, due_date = ?, importance = ?, updated_at = ?, archived = ?
        WHERE id = ?`,
     ).run(
       merged.content,
       merged.type,
       merged.priority,
       merged.status,
+      merged.start_date,
       merged.due_date,
+      merged.importance,
       merged.updated_at,
       merged.archived,
       id,
@@ -324,6 +337,9 @@ export function listCards(query: ListCardsQuery = {}): ListCardsResult {
   if (query.dueAfter) {
     where.push('c.due_date IS NOT NULL AND c.due_date >= ?')
     params.push(query.dueAfter)
+  }
+  if (query.hasSchedule) {
+    where.push('(c.due_date IS NOT NULL OR c.start_date IS NOT NULL)')
   }
 
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : ''

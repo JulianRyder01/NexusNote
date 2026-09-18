@@ -9,6 +9,7 @@ import { getDb } from './db'
 import { cardRoutes } from './routes/cards'
 import { graphRoutes } from './routes/graph'
 import { reviewRoutes } from './routes/review'
+import { scheduleRoutes } from './routes/schedule'
 import { tagRoutes } from './routes/tags'
 import { authRoutes, requireAuth } from './routes/auth'
 import { purgeExpiredSessions } from './auth'
@@ -49,6 +50,7 @@ await app.register(async (instance) => {
   await instance.register(tagRoutes)
   await instance.register(graphRoutes)
   await instance.register(reviewRoutes)
+  await instance.register(scheduleRoutes)
 })
 
 async function start() {

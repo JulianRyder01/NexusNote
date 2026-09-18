@@ -12,7 +12,9 @@ CREATE TABLE IF NOT EXISTS cards (
   type        TEXT NOT NULL DEFAULT 'note',
   priority    TEXT,
   status      TEXT DEFAULT 'todo',
+  start_date  DATE,
   due_date    DATE,
+  importance  INTEGER,
   created_at  TEXT NOT NULL,
   updated_at  TEXT NOT NULL,
   archived    INTEGER DEFAULT 0
@@ -23,6 +25,8 @@ CREATE INDEX IF NOT EXISTS idx_cards_status     ON cards(status);
 CREATE INDEX IF NOT EXISTS idx_cards_archived   ON cards(archived);
 CREATE INDEX IF NOT EXISTS idx_cards_updated_at ON cards(updated_at);
 CREATE INDEX IF NOT EXISTS idx_cards_due_date   ON cards(due_date);
+-- 注意：idx_cards_start_date 不在此处创建。旧库的 cards 表可能尚未有 start_date 列，
+-- 而 CREATE TABLE IF NOT EXISTS 不会补列，故该索引统一放到 migrate() 中、补列之后再建。
 
 -- 标签
 CREATE TABLE IF NOT EXISTS tags (

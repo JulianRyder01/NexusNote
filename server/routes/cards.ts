@@ -22,6 +22,16 @@ function asType(v: unknown): CardType | undefined {
 function asStatus(v: unknown): CardStatus | undefined {
   return typeof v === 'string' && CARD_STATUSES.has(v) ? (v as CardStatus) : undefined
 }
+/** 校验 YYYY-MM-DD；非法或非字符串返回 undefined（调用方据此决定是否覆盖） */
+function asDate(v: unknown): string | undefined {
+  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined
+}
+/** 校验重要性 1..3 */
+function asImportance(v: unknown): number | undefined {
+  if (v === null) return undefined
+  const n = Number(v)
+  return Number.isInteger(n) && n >= 1 && n <= 3 ? n : undefined
+}
 
 export async function cardRoutes(app: FastifyInstance): Promise<void> {
   app.get('/api/cards', async (req) => {
@@ -72,7 +82,9 @@ export async function cardRoutes(app: FastifyInstance): Promise<void> {
       type: asType(body.type) ?? parsed.type,
       priority,
       status: asStatus(body.status) ?? (parsed.done ? 'done' : undefined),
-      due_date: typeof body.due_date === 'string' ? body.due_date : parsed.dueDate,
+      start_date: asDate(body.start_date) ?? parsed.startDate,
+      due_date: asDate(body.due_date) ?? parsed.dueDate,
+      importance: asImportance(body.importance) ?? parsed.importance,
     })
     return reply.code(201).send(card)
   })
@@ -85,12 +97,16 @@ export async function cardRoutes(app: FastifyInstance): Promise<void> {
     // 注意：仅当新内容确实含 due token 时才回填 due_date，避免编辑正文把已有日期清空。
     const newContent = typeof body.content === 'string' ? body.content.trim() : undefined
     let fallbackType: CardType | undefined
+    let fallbackStart: string | null | undefined
     let fallbackDue: string | null | undefined
+    let fallbackImportance: number | null | undefined
     if (newContent !== undefined) {
       const knownNames = listPriorities().map((p) => p.name)
       const parsed = parseInput(newContent, knownNames)
       fallbackType = parsed.type
+      fallbackStart = parsed.startDate
       fallbackDue = parsed.dueDate
+      fallbackImportance = parsed.importance
     }
 
     const card = updateCard(id, {
@@ -111,6 +127,23 @@ export async function cardRoutes(app: FastifyInstance): Promise<void> {
             : undefined
           : fallbackDue !== undefined && fallbackDue !== null
             ? fallbackDue
+            : undefined,
+      // 同理：仅当新内容解析出开始日期/重要性时才回填，否则不动
+      start_date:
+        body.start_date !== undefined
+          ? body.start_date === null || typeof body.start_date === 'string'
+            ? (body.start_date as string | null)
+            : undefined
+          : fallbackStart !== undefined && fallbackStart !== null
+            ? fallbackStart
+            : undefined,
+      importance:
+        body.importance !== undefined
+          ? body.importance === null
+            ? null
+            : asImportance(body.importance)
+          : fallbackImportance !== undefined
+            ? fallbackImportance
             : undefined,
       archived: body.archived === undefined ? undefined : Number(body.archived) ? 1 : 0,
     })

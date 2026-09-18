@@ -14,8 +14,12 @@ export interface Card {
   /** 优先级 ID；null 表示不进看板 */
   priority: string | null
   status: CardStatus
-  /** ISO 日期 YYYY-MM-DD，或 null */
+  /** 开始日期 YYYY-MM-DD；null 表示无明确起点（甘特图退化为里程碑点） */
+  start_date: string | null
+  /** 截止日期 YYYY-MM-DD，或 null */
   due_date: string | null
+  /** 重要性 1/2/3；null 表示未设置（矩阵纵轴） */
+  importance: number | null
   created_at: string
   updated_at: string
   archived: 0 | 1
@@ -82,8 +86,12 @@ export interface ParsedInput {
   tags: string[]
   /** 显式链接目标（[[...]] 内的文本） */
   links: string[]
+  /** 开始日期，ISO YYYY-MM-DD 或 null（由 `@起~@止` 给出） */
+  startDate: string | null
   /** due date，ISO YYYY-MM-DD 或 null */
   dueDate: string | null
+  /** 重要性 1/2/3；由行内 `!`/`!!`/`!!!` 标记，未标记为 null */
+  importance: number | null
 }
 
 /** 组合返回：卡片附带标签与链接 */
@@ -133,8 +141,93 @@ export interface RandomWalkResult {
   tags: Tag[]
 }
 
+/** 推荐打分的单个因素明细（用于解释排序依据） */
+export interface ScoreBreakdown {
+  label: string
+  score: number
+  reason: string
+}
+
+/** 排期条目：甘特图与矩阵视图的数据行（含服务端算好的衍生字段） */
+export interface ScheduleItem {
+  id: string
+  content: string
+  type: CardType
+  status: CardStatus
+  priority: string | null
+  /** 优先级列名，如 P0；未进看板为 null */
+  priorityName: string | null
+  /** 看板列序号（0 起）；未进看板为 null */
+  priorityRank: number | null
+  start_date: string | null
+  due_date: string | null
+  importance: number | null
+  tags: string[]
+  updated_at: string
+  created_at: string
+  /** true 表示只有截止日、没有起始日（甘特图里画成里程碑菱形） */
+  milestone: boolean
+  /** 时间条绘制用的起止日（milestone 时等长） */
+  barStart: string
+  barEnd: string
+  urgency: Urgency
+  quadrant: Quadrant
+  score: number
+  breakdown: ScoreBreakdown[]
+}
+
+/** 排期接口整体返回 */
+export interface SchedulePayload {
+  today: string
+  items: ScheduleItem[]
+  /** 时间轴建议范围（已含余量） */
+  range: { start: string; end: string }
+}
+
 export const CARD_TYPES: CardType[] = ['todo', 'idea', 'note', 'link']
 export const CARD_STATUSES: CardStatus[] = ['todo', 'in_progress', 'done', 'someday']
+
+/** 紧急度（由 due_date 相对今天自动推导） */
+export type Urgency = 'overdue' | 'today' | 'soon' | 'later' | 'none'
+
+/** 艾森豪威尔四象限 */
+export type Quadrant = 'urgent-important' | 'urgent-unimportant' | 'not-urgent-important' | 'not-urgent-unimportant'
+
+export const URGENCY_LABELS: Record<Urgency, string> = {
+  overdue: '已逾期',
+  today: '今天到期',
+  soon: '3 天内',
+  later: '更远',
+  none: '无期限',
+}
+
+export const QUADRANT_LABELS: Record<Quadrant, string> = {
+  'urgent-important': '重要且紧急',
+  'urgent-unimportant': '紧急不重要',
+  'not-urgent-important': '重要不紧急',
+  'not-urgent-unimportant': '不重要不紧急',
+}
+
+export const QUADRANT_HINTS: Record<Quadrant, string> = {
+  'urgent-important': '立刻去做',
+  'urgent-unimportant': '委托或尽快清掉',
+  'not-urgent-important': '安排时间推进',
+  'not-urgent-unimportant': '考虑删掉或归档',
+}
+
+export const QUADRANT_COLORS: Record<Quadrant, string> = {
+  'urgent-important': '#a5614a',
+  'urgent-unimportant': '#a5754a',
+  'not-urgent-important': '#4a6fa5',
+  'not-urgent-unimportant': '#8c98a6',
+}
+
+/** 重要性用词 */
+export const IMPORTANCE_LABELS: Record<number, string> = {
+  1: '低',
+  2: '中',
+  3: '高',
+}
 
 /** 状态中文标签 */
 export const STATUS_LABELS: Record<CardStatus, string> = {

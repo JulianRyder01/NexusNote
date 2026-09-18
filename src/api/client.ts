@@ -11,6 +11,7 @@ import type {
   DailyReview,
   Priority,
   RandomWalkResult,
+  SchedulePayload,
   Tag,
 } from '@shared/types'
 
@@ -178,6 +179,9 @@ export const api = {
     request<DailyReview>('GET', `/api/review/daily${qs({ date })}`),
   random: (query: { tag?: string; exclude?: string } = {}) =>
     request<RandomWalkResult>('GET', `/api/random${qs(query)}`),
+
+  // ---- 排期（甘特图 / 矩阵） ----
+  schedule: () => request<SchedulePayload>('GET', '/api/schedule'),
 
   // ---- 优先级 ----
   listPriorities: () => request<Priority[]>('GET', '/api/priorities'),
