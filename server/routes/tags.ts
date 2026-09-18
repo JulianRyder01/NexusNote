@@ -21,6 +21,19 @@ export async function tagRoutes(app: FastifyInstance): Promise<void> {
 
   app.get('/api/tags/orphans', async () => listOrphanTags())
 
+  /** 标签概览：总数、孤儿数、颜色分布（供标签管理页头部展示） */
+  app.get('/api/tags/summary', async () => {
+    const all = listTags('count')
+    const orphans = all.filter((t) => (t.count ?? 0) <= 1)
+    const top = all.slice(0, 5).map((t) => ({ name: t.name, count: t.count ?? 0 }))
+    return {
+      total: all.length,
+      orphans: orphans.length,
+      unused: all.filter((t) => (t.count ?? 0) === 0).length,
+      top,
+    }
+  })
+
   app.patch('/api/tags/:id', async (req, reply) => {
     const { id } = req.params as { id: string }
     const body = req.body as Record<string, unknown>

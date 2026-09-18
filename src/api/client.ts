@@ -154,6 +154,14 @@ export const api = {
   // ---- 标签 ----
   listTags: (sort: 'count' | 'name' = 'count') =>
     request<Tag[]>('GET', `/api/tags${qs({ sort })}`),
+  tagSummary: () =>
+    request<{
+      total: number
+      orphans: number
+      unused: number
+      top: { name: string; count: number }[]
+    }>('GET', '/api/tags/summary'),
+  listOrphanTags: () => request<Tag[]>('GET', '/api/tags/orphans'),
   updateTag: (id: string, patch: { name?: string; color?: string | null; description?: string | null }) =>
     request<Tag>('PATCH', `/api/tags/${id}`, patch),
   mergeTags: (from: string, to: string) => request<{ ok: true }>('POST', '/api/tags/merge', { from, to }),
