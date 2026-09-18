@@ -56,7 +56,9 @@ export function CardDetailModal() {
 
   async function removeTag(name: string) {
     if (!card) return
-    const next = card.content.replace(new RegExp(`#${escapeRe(name)}\\b`, 'g'), '').replace(/\s{2,}/g, ' ').trim()
+    // 注意：中文标签不能用 \b 词边界（中文不是 word 字符），改用「其后是空白或行尾」
+    const re = new RegExp(`#${escapeRe(name)}(?=\\s|$)`, 'g')
+    const next = card.content.replace(re, '').replace(/\s{2,}/g, ' ').trim()
     setContent(next)
     await updateCard(card.id, { content: next })
   }

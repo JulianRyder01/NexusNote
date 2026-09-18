@@ -17,7 +17,7 @@ export function ListView() {
   const selectCard = useStore((s) => s.selectCard)
   const toggleDone = useStore((s) => s.toggleDone)
   const bulkUpdate = useStore((s) => s.bulkUpdate)
-  const deleteCard = useStore((s) => s.deleteCard)
+  const deleteCards = useStore((s) => s.deleteCards)
 
   const [groupByTag, setGroupByTag] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -172,7 +172,7 @@ export function ListView() {
             size="sm"
             variant="danger"
             onClick={() => {
-              void Promise.all(selectedIds.map((id) => deleteCard(id)))
+              void deleteCards(selectedIds)
               setSelected(new Set())
             }}
           >

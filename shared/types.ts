@@ -74,6 +74,8 @@ export interface ParsedInput {
   /** 原始内容（未剥离前缀） */
   raw: string
   type: CardType
+  /** 行首为 [x]/[X] 时为 true，表示已完成的 todo */
+  done: boolean
   /** 识别到的优先级名，如 P0；未识别为 null */
   priorityName: string | null
   /** 标签名列表（不含 #） */

@@ -71,7 +71,7 @@ export async function cardRoutes(app: FastifyInstance): Promise<void> {
       content: parsed.content.trim() || raw,
       type: asType(body.type) ?? parsed.type,
       priority,
-      status: asStatus(body.status),
+      status: asStatus(body.status) ?? (parsed.done ? 'done' : undefined),
       due_date: typeof body.due_date === 'string' ? body.due_date : parsed.dueDate,
     })
     return reply.code(201).send(card)
@@ -81,18 +81,21 @@ export async function cardRoutes(app: FastifyInstance): Promise<void> {
     const { id } = req.params as { id: string }
     const body = req.body as Record<string, unknown>
 
-    // 内容被改写时同样做语法兜底，保证与创建时一致
+    // 内容被改写时同样做语法兜底，保证与创建时一致。
+    // 注意：仅当新内容确实含 due token 时才回填 due_date，避免编辑正文把已有日期清空。
     const newContent = typeof body.content === 'string' ? body.content.trim() : undefined
-    let fallback: { type?: CardType; due_date?: string | null } = {}
+    let fallbackType: CardType | undefined
+    let fallbackDue: string | null | undefined
     if (newContent !== undefined) {
       const knownNames = listPriorities().map((p) => p.name)
       const parsed = parseInput(newContent, knownNames)
-      fallback = { type: parsed.type, due_date: parsed.dueDate }
+      fallbackType = parsed.type
+      fallbackDue = parsed.dueDate
     }
 
     const card = updateCard(id, {
       content: newContent,
-      type: asType(body.type) ?? fallback.type,
+      type: asType(body.type) ?? fallbackType,
       priority:
         body.priority === undefined
           ? undefined
@@ -100,11 +103,14 @@ export async function cardRoutes(app: FastifyInstance): Promise<void> {
             ? (body.priority as string | null)
             : undefined,
       status: asStatus(body.status),
+      // 显式传入优先；否则仅当新内容解析出日期时才回填，无日期则不动
       due_date:
-        body.due_date === undefined
-          ? fallback.due_date
-          : body.due_date === null || typeof body.due_date === 'string'
+        body.due_date !== undefined
+          ? body.due_date === null || typeof body.due_date === 'string'
             ? (body.due_date as string | null)
+            : undefined
+          : fallbackDue !== undefined && fallbackDue !== null
+            ? fallbackDue
             : undefined,
       archived: body.archived === undefined ? undefined : Number(body.archived) ? 1 : 0,
     })

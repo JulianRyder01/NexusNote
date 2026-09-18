@@ -50,9 +50,15 @@ export function updateTag(
   })
 }
 
-/** 合并标签：from 的全部关联与共现权重并入 to，然后删除 from */
+/** 合并标签：from 的全部关联与共现权重并入 to，然后删除 from（整体事务） */
 export function mergeTags(fromId: string, toId: string): void {
   if (fromId === toId) return
+  transaction(() => {
+    mergeTagsInner(fromId, toId)
+  })
+}
+
+function mergeTagsInner(fromId: string, toId: string): void {
   const db = getDb()
 
   // 1) card_tags：把 from 的关联改指到 to，忽略冲突

@@ -113,25 +113,25 @@ export function parseDueToken(token: string, now: Date = new Date()): string | n
 }
 
 /** 依据行首语法推断卡片类型，并返回剥除前缀后的正文 */
-export function detectType(raw: string): { type: CardType; content: string } {
+export function detectType(raw: string): { type: CardType; content: string; done: boolean } {
   const trimmed = raw.trimStart()
 
   if (/^\[\s*\]/.test(trimmed)) {
-    return { type: 'todo', content: trimmed.replace(/^\[\s*\]\s*/, '') }
+    return { type: 'todo', content: trimmed.replace(/^\[\s*\]\s*/, ''), done: false }
   }
   if (/^\[[xX]\]/.test(trimmed)) {
-    return { type: 'todo', content: trimmed.replace(/^\[[xX]\]\s*/, '') }
+    return { type: 'todo', content: trimmed.replace(/^\[[xX]\]\s*/, ''), done: true }
   }
   if (trimmed.startsWith('?')) {
-    return { type: 'idea', content: trimmed.replace(/^\?\s*/, '') }
+    return { type: 'idea', content: trimmed.replace(/^\?\s*/, ''), done: false }
   }
   if (trimmed.startsWith('!')) {
-    return { type: 'idea', content: trimmed.replace(/^!\s*/, '') }
+    return { type: 'idea', content: trimmed.replace(/^!\s*/, ''), done: false }
   }
   if (/^https?:\/\//i.test(trimmed)) {
-    return { type: 'link', content: trimmed }
+    return { type: 'link', content: trimmed, done: false }
   }
-  return { type: 'note', content: trimmed }
+  return { type: 'note', content: trimmed, done: false }
 }
 
 /** 提取全部 #标签（去重，保持出现顺序） */
@@ -204,11 +204,12 @@ export function parseInput(
   knownPriorities: string[] = [],
   now: Date = new Date(),
 ): ParsedInput {
-  const { type, content } = detectType(raw)
+  const { type, content, done } = detectType(raw)
   return {
     raw,
     content,
     type,
+    done,
     priorityName: extractPriority(content, knownPriorities),
     tags: extractTags(content),
     links: extractLinks(content),

@@ -15,7 +15,8 @@ const app = Fastify({
   logger: {
     level: process.env.LOG_LEVEL ?? 'info',
   },
-  trustProxy: true,
+  // 仅在信任反向代理（如 Nginx/Caddy）时才开启，避免 X-Forwarded-For 伪造绕过限流
+  trustProxy: process.env.TRUST_PROXY === 'true',
 })
 
 await app.register(cookie)

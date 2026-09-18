@@ -83,7 +83,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     return { ok: true }
   })
 
-  app.get('/api/auth/me', { preHandler: requireAuth }, async (req) => {
-    return { authenticated: true, jti: req.sessionJti }
+  app.get('/api/auth/me', { preHandler: requireAuth }, async () => {
+    // 不返回 jti，避免会话标识泄露到前端
+    return { authenticated: true }
   })
 }

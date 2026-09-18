@@ -113,8 +113,9 @@ export function AppShell() {
             </div>
           )}
           <div className="h-full overflow-auto p-3 sm:p-4">
+            {/* 加载态只在「尚无数据」时占据主区，避免每次刷新卸载视图（会导致搜索框失焦） */}
             {loading && <Spinner label="加载中…" />}
-            {!loading && main}
+            {main}
           </div>
         </main>
       </div>

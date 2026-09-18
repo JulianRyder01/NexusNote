@@ -146,6 +146,7 @@ export function KanbanView() {
               key={p.id}
               title={p.name}
               color={p.color}
+              droppableId={p.id}
               cards={grouped.get(p.id) ?? []}
               collapsed={!!collapsed[p.id]}
               onToggleCollapse={() => toggleCollapse(p.id)}

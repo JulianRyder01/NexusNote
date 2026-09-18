@@ -66,6 +66,7 @@ interface AppState {
   updatePriority: (id: string, patch: { name?: string; color?: string | null; sort?: number }) => Promise<void>
   deletePriority: (id: string) => Promise<void>
   reorderPriorities: (ids: string[]) => Promise<void>
+  deleteCards: (ids: string[]) => Promise<void>
 
   updateTag: (id: string, patch: { name?: string; color?: string | null; description?: string | null }) => Promise<void>
   mergeTags: (from: string, to: string) => Promise<void>
@@ -291,6 +292,20 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       set({ priorities: await api.reorderPriorities(ids) })
       await get().refreshCards()
+    } catch (err) {
+      handleErr(err, set)
+    }
+  },
+
+  async deleteCards(ids) {
+    if (ids.length === 0) return
+    try {
+      await Promise.all(ids.map((id) => api.deleteCard(id)))
+      if (get().selectedCardId && ids.includes(get().selectedCardId!)) {
+        set({ selectedCardId: null })
+      }
+      // 批量操作只在最后刷新一次，避免 N 次重复请求
+      await Promise.all([get().refreshCards(), get().refreshTags(), get().refreshStats()])
     } catch (err) {
       handleErr(err, set)
     }

@@ -98,7 +98,7 @@ export const api = {
   // ---- 认证 ----
   login: (password: string) => request<{ ok: true; expires_at: string }>('POST', '/api/auth/login', { password }),
   logout: () => request<{ ok: true }>('POST', '/api/auth/logout'),
-  me: () => request<{ authenticated: true; jti?: string }>('GET', '/api/auth/me'),
+  me: () => request<{ authenticated: true }>('GET', '/api/auth/me'),
   health: () => request<{ ok: boolean; app: string; version: string }>('GET', '/api/health'),
 
   // ---- 卡片 ----

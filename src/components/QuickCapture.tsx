@@ -39,6 +39,7 @@ export function QuickCapture({ autoFocusKey }: { autoFocusKey?: number }) {
       content: p.content.trim(),
       type: p.type,
       priority: matchedPriority?.id ?? null,
+      status: p.done ? 'done' : undefined,
       due_date: p.dueDate,
     })
     setBusy(false)
